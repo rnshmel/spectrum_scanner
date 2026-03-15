@@ -10,22 +10,27 @@ Built with **Python 3**, **PyQt5**, **NumPy**, and **SciPy/Scikit-learn**, this 
 
 The suite is divided into two applications:
 
-1. **Spectrum Scanner (`spectrum_scanner.py`)**: An acquisition-focused UI that wraps SDR libraries within a QThread orchestrator. It parses data streams directly into NumPy arrays, minimizing standard file I/O overhead.
-2. **Spectrum Viewer (`spectrum_viewer.py`)**: A PyQtGraph-based analysis environment for post-processing large `.dat` files with tunable DSP filters, peak extraction, density-based emitter classification, and temporal spectrograms.
+1. **Spectrum Scanner (`spectrum_scanner.py`)**: An acquisition-focused UI that wraps SDR libraries within a QThread orchestrator. It parses data streams directly into NumPy arrays and is robust enough for long-running scans.
+2. **Scan Viewer (`scan_viewer.py`)**: A PyQtGraph-based analysis environment for post-processing large `.dat` files with tunable DSP filters, peak extraction, density-based emitter clustering (WIP), and spectrograms.
+
+TODO:
+* Add support for RTL-SDR
+* Add support for B-series USRPs
+* Better clustering analysis.
 
 ## Key Features
 
 ### Acquisition (Scanner)
-* **Atomic Checkpointing**: Utilizes OS-level file replacement (`.tmp` to `.dat`) to prevent data corruption during unexpected system terminations.
+* **Atomic Checkpointing**: Utilizes OS-level file replacement (`.tmp` to `.dat`) to prevent data corruption during unexpected errors in scanning.
 * **Hardware Watchdog**: Monitors the SDR data stream for stalls, automatically attempting software resets of the SDR subprocess to maintain scan continuity.
 * **Subscans**: Segments sweeps into discrete time intervals while simultaneously maintaining a cumulative main max-hold file.
 
 ### Analysis (Viewer)
 * **DSP Pipeline**: Apply Moving Average or Gaussian smoothing, and calculate sliding-median noise floors across the FFT bin array.
 * **Automated Peak Extraction**: Leverages SciPy's `find_peaks` to isolate signals based on Prominence, Separation (Distance), and Width thresholds.
-* **Emitter Classification (DBSCAN)**: Applies Density-Based Spatial Clustering (Scikit-learn) to map Center Frequency against Bandwidth across multiple scans, categorizing peaks by cross-file persistence.
+* **Emitter Classification (DBSCAN)**: Applies Density-Based Spatial Clustering (from Scikit-learn) to map Center Frequency against Bandwidth across multiple scans, categorizing peaks by cross-file persistence. *Still a WIP.*
 * **Headless Bulk Ingest**: Batch process raw scan files using active DSP parameters, extracting structured emitter data directly to CSV without GUI rendering overhead.
-* **Temporal Spectrogram**: Render sequential subscan directories into a waterfall plot for time-domain observation.
+* **Temporal Spectrogram**: Render sequential subscan directories into a waterfall plot for long time-domain observation.
 
 ## Installation
 
@@ -39,8 +44,8 @@ sudo apt-get install hackrf
 
 **2. Setup Python Environment**
 ```bash
-git clone [https://github.com/rnshmel/sdr-survey-tool.git](https://github.com/rnshmel/sdr_survey_tools.git)
-cd sdr-survey-tool
+git clone https://github.com/rnshmel/spectrum_scanner/
+cd spectrum_scanner
 
 # The run script handles virtual environments and dependencies automatically
 chmod +x run.sh
@@ -57,11 +62,11 @@ The repository uses a unified launch script that manages the `PYTHONPATH` and vi
 
 **Launch the Analysis Viewer:**
 ```bash
-./run.sh spectrum_viewer.py
+./run.sh scan_viewer.py
 ```
 
 ## 🛠️ Extensibility
-The scanner backend is built on an abstract `RadioBackend` class. While currently implemented for the HackRF One (via `hackrf_sweep`), the architecture is specifically designed to drop in `rtl_power` (RTL-SDR) or UHD (USRP) backends with minimal friction.
+The scanner backend is built on an abstract `RadioBackend` class to allow support for multiple SDRs.
 
 ---
 ### License
