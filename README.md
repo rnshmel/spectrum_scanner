@@ -65,8 +65,8 @@ The repository uses a unified launch script that manages the `PYTHONPATH` and vi
 ./run.sh scan_viewer.py
 ```
 
-## 🛠️ Extensibility
-The scanner backend is built on an abstract `RadioBackend` class to allow support for multiple SDRs.
+## Extensibility
+The scanner backend is built on an abstract `RadioBackend` class to allow support for multiple SDRs. Adding additional radios is an ongoing project.
 
 ---
 ### License
