@@ -65,15 +65,14 @@ class ScannerWindow(QMainWindow):
         self.spin_if_gain = QSpinBox(); self.spin_if_gain.setRange(0, 40); self.spin_if_gain.setValue(16)
         self.spin_bb_gain = QSpinBox(); self.spin_bb_gain.setRange(0, 62); self.spin_bb_gain.setValue(18)
         
-        self.spin_bin_width = QSpinBox()
-        self.spin_bin_width.setRange(2445, 5000000)
-        self.spin_bin_width.setValue(10000)
-        self.spin_bin_width.setSuffix(" Hz")
+        self.cmb_bin_width = QComboBox()
+        self.cmb_bin_width.addItems(["2445", "5000", "10000", "20000", "50000", "100000", "250000", "500000"])
+        self.cmb_bin_width.setCurrentText("5000")
 
         radio_layout.addRow("RF Gain (Amp):", self.spin_rf_gain)
         radio_layout.addRow("IF Gain (LNA):", self.spin_if_gain)
         radio_layout.addRow("BB Gain (VGA):", self.spin_bb_gain)
-        radio_layout.addRow("FFT Bin Width:", self.spin_bin_width)
+        radio_layout.addRow("FFT Bin Width (Hz):", self.cmb_bin_width)
         radio_group.setLayout(radio_layout)
         main_layout.addWidget(radio_group)
 
@@ -185,7 +184,7 @@ class ScannerWindow(QMainWindow):
             config = {
                 'start_freq': self.spin_start_freq.value(),
                 'stop_freq': self.spin_stop_freq.value(),
-                'bin_width': self.spin_bin_width.value(),
+                'bin_width': int(self.cmb_bin_width.currentText()),
                 'rf_gain': self.spin_rf_gain.value(),
                 'if_gain': self.spin_if_gain.value(),
                 'bb_gain': self.spin_bb_gain.value(),
