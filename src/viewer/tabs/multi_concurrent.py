@@ -477,9 +477,9 @@ class MultiConcurrentTab(QWidget):
         
         row_thresh.addWidget(QLabel("1:1 Thresh:"))
         self.spin_plot_thresh = QSpinBox()
-        self.spin_plot_thresh.setRange(1000, 5000000)
-        self.spin_plot_thresh.setSingleStep(10000)
-        self.spin_plot_thresh.setValue(50000)
+        self.spin_plot_thresh.setRange(1000, 100000)
+        self.spin_plot_thresh.setSingleStep(1000)
+        self.spin_plot_thresh.setValue(5000)
         self.spin_plot_thresh.valueChanged.connect(self.refresh_plot_data)
         row_thresh.addWidget(self.spin_plot_thresh)
         
@@ -517,7 +517,7 @@ class MultiConcurrentTab(QWidget):
         self.spin_nf_len = QDoubleSpinBox()
         self.spin_nf_len.setRange(0.5, 999.0) 
         self.spin_nf_len.setSingleStep(0.5)
-        self.spin_nf_len.setValue(3.0) 
+        self.spin_nf_len.setValue(10.0) 
         self.spin_nf_len.setSuffix(" MHz")
         self.spin_nf_len.valueChanged.connect(self._process_and_plot)
         
@@ -934,16 +934,16 @@ class MultiConcurrentTab(QWidget):
             
             pen_color = QColor(ui.color)
             pen_color.setAlpha(ui.opacity)
-            slot['curve'].setPen(pen_color)
+            slot['curve'].setPen(pg.mkPen(color=pen_color, width=2))
             
-            fill = QColor(ui.color)
-            fill.setAlpha(int(ui.opacity * 0.3))
-            slot['curve'].setFillLevel(ui.noise_floor - 10.0)
-            slot['curve'].setBrush(fill)
+            slot['curve'].setFillLevel(ui.noise_floor - 5.0)
             
             peak_brush = QColor(ui.color)
             peak_brush.setAlpha(ui.opacity)
             slot['peak_scatter'].setBrush(pg.mkBrush(peak_brush))
+
+        # Trigger refresh to apply the brush dynamically based on current zoom level
+        self.refresh_plot_data()
 
     def autoscale_x(self):
         min_x, max_x = None, None
@@ -1028,11 +1028,16 @@ class MultiConcurrentTab(QWidget):
             if num_points > self.spin_plot_thresh.value():
                 slot['curve'].setDownsampling(auto=True, method='peak')
                 slot['nf_curve'].setDownsampling(auto=True, method='peak')
-                slot['nf_3db_curve'].setDownsampling(auto=True, method='peak')
+                slot['nf_3db_curve'].setDownsampling(auto=True, method='peak') 
+                slot['curve'].setBrush(None)
+
             else:
                 slot['curve'].setDownsampling(auto=False)
                 slot['nf_curve'].setDownsampling(auto=False)
                 slot['nf_3db_curve'].setDownsampling(auto=False)
+                fill = QColor(ui.color)
+                fill.setAlpha(int(ui.opacity * 0.3))
+                slot['curve'].setBrush(fill)
                 
             slot['curve'].setData(view_x, view_y)
             

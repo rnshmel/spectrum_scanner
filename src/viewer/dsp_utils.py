@@ -24,9 +24,26 @@ class SpectrumFilters:
         return np.convolve(padded, kernel, mode='valid')
 
     @staticmethod
-    def apply_sliding_median(data: np.ndarray, window_len: int) -> np.ndarray:
-        if window_len < 3: return data
-        return median_filter(data, size=window_len, mode='reflect')
+    def apply_sliding_median(data: np.ndarray, window_len: int, overlap_percent: float = 0.90) -> np.ndarray:
+        if window_len < 3: 
+            return data
+            
+        # Standard scipy median_filter scales poorly with large windows.
+        if window_len < 100:
+            return median_filter(data, size=window_len, mode='reflect')
+
+        overlap = max(0.0, min(0.99, overlap_percent))
+        step_size = max(1, int(window_len * (1.0 - overlap)))
+
+        windows = sliding_window_view(data, window_shape=window_len)[::step_size]
+        medians = np.median(windows, axis=1)
+
+        x_centers = np.arange(len(medians)) * step_size + (window_len // 2)
+        x_all = np.arange(len(data))
+
+        fast_baseline = np.interp(x_all, x_centers, medians)
+        
+        return fast_baseline
 
     @staticmethod
     def find_spectrum_peaks(data: np.ndarray, height_thresh=None, prominence: float = 3.0, distance: int = 10, width: int = 3):

@@ -91,7 +91,7 @@ class SingleFileTab(QWidget):
         super().__init__()
         
         # State variables
-        self.current_color = QColor(15, 235, 15) # Default Green
+        self.current_color = QColor(0, 170, 0) # Default Green
         self.fill_opacity = 50 # 0-255
         self.noise_floor = -100.0 # Will dynamically update when file loads
         
@@ -216,9 +216,9 @@ class SingleFileTab(QWidget):
         row_thresh = QHBoxLayout()
         row_thresh.addWidget(QLabel("1:1 Render Threshold:"))
         self.spin_plot_thresh = QSpinBox()
-        self.spin_plot_thresh.setRange(1000, 5000000)
-        self.spin_plot_thresh.setSingleStep(10000)
-        self.spin_plot_thresh.setValue(50000)
+        self.spin_plot_thresh.setRange(1000, 100000)
+        self.spin_plot_thresh.setSingleStep(1000)
+        self.spin_plot_thresh.setValue(5000)
         self.spin_plot_thresh.setToolTip("Max points drawn 1:1 before peak-downsampling activates.")
         self.spin_plot_thresh.valueChanged.connect(self.refresh_plot_data)
         row_thresh.addWidget(self.spin_plot_thresh)
@@ -273,7 +273,7 @@ class SingleFileTab(QWidget):
         self.spin_nf_len = QDoubleSpinBox()
         self.spin_nf_len.setRange(0.5, 999.0) 
         self.spin_nf_len.setSingleStep(0.5)
-        self.spin_nf_len.setValue(3.0) 
+        self.spin_nf_len.setValue(10.0) 
         self.spin_nf_len.setSuffix(" MHz")
         self.spin_nf_len.valueChanged.connect(self._process_and_plot)
         
@@ -535,11 +535,19 @@ class SingleFileTab(QWidget):
             self.nf_curve.setDownsampling(auto=True, method='peak')
             self.nf_3db_curve.setDownsampling(auto=True, method='peak')
             self.lbl_active_points.setText(f"Visible Points: {num_points:,}  [Downsampled]")
+            
+            # Disable CPU-heavy polygon fill when zoomed out
+            self.main_curve.setBrush(None)
         else:
             self.main_curve.setDownsampling(auto=False)
             self.nf_curve.setDownsampling(auto=False)
             self.nf_3db_curve.setDownsampling(auto=False)
             self.lbl_active_points.setText(f"Visible Points: {num_points:,}  [1:1]")
+            
+            # Restore fill when zoomed in
+            fill_color = QColor(self.current_color)
+            fill_color.setAlpha(self.fill_opacity)
+            self.main_curve.setBrush(fill_color)
 
         self.main_curve.setData(view_x, view_y)
 
@@ -591,11 +599,11 @@ class SingleFileTab(QWidget):
         self._apply_plot_style()
 
     def _apply_plot_style(self):
-        self.main_curve.setPen(self.current_color)
-        fill_color = QColor(self.current_color)
-        fill_color.setAlpha(self.fill_opacity)
-        self.main_curve.setFillLevel(self.noise_floor - 10.0) 
-        self.main_curve.setBrush(fill_color)
+        self.main_curve.setPen(pg.mkPen(self.current_color, width=2))
+        self.main_curve.setFillLevel(self.noise_floor - 5.0) 
+        
+        # Trigger refresh to apply the brush dynamically based on current zoom level
+        self.refresh_plot_data()
 
     def update_theme(self, is_dark: bool):
         bg = '#191919' if is_dark else '#E5E5E5'
