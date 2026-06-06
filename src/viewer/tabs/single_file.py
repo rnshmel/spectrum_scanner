@@ -91,7 +91,7 @@ class SingleFileTab(QWidget):
         super().__init__()
         
         # State variables
-        self.current_color = QColor(0, 170, 0) # Default Green
+        self.current_color = QColor(0, 225, 0) # Default Green
         self.fill_opacity = 50 # 0-255
         self.noise_floor = -100.0 # Will dynamically update when file loads
         
