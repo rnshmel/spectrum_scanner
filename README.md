@@ -1,6 +1,6 @@
 # SDR Survey and Analysis Suite
 
-*Version 1.1.0*
+*Version 1.1.1*
 
 A graphical Software Defined Radio (SDR) survey tool designed for long-duration RF monitoring and post-scan analysis.
 
